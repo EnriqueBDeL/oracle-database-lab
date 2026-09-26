@@ -1,0 +1,14 @@
+Script started on 2026-09-26 16:55:41+02:00 [TERM="xterm-256color" TTY="/dev/pts/6" COLUMNS="130" LINES="16"]
+[?2004h[1;32menrique@LAPTOP-6MILUFL7[0m [1;34m/mnt/c/Users/enriq/Desktop/Administración de Base Datos/oracle-database-lab[0m
+[1;35m(chore/3-install-oracle-environment)[0m
+$ [7mcd ~/oracle-database-lab[27m[C[Ccd ~/oracle-database-lab
+[?2004l[?2004h[1;32menrique@LAPTOP-6MILUFL7[0m [1;34m~/oracle-database-lab[0m
+[1;35m(main)[0m
+$ [7msource scripts/deployment/env/00-config.sh[27m[C[Csource scripts/deployment/env/00-config.sh
+[?2004lbash: scripts/deployment/env/00-config.sh: No such file or directory
+[?2004h[1;32menrique@LAPTOP-6MILUFL7[0m [1;34m~/oracle-database-lab[0m
+[1;35m(main)[0m
+$ exit
+[?2004lexit
+
+Script done on 2026-09-26 16:56:07+02:00 [COMMAND_EXIT_CODE="1"]
