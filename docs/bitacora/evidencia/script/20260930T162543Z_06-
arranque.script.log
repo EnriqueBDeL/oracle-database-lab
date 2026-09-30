@@ -1,0 +1,186 @@
+== Esperando a que oralab-26ai este healthy (max. 5 min) ==
+ intento 1: unhealthy
+ intento 2: unhealthy
+ intento 3: unhealthy
+ intento 4: unhealthy
+ intento 5: unhealthy
+ intento 6: unhealthy
+ intento 7: unhealthy
+ intento 8: unhealthy
+ intento 9: unhealthy
+ intento 10: unhealthy
+ intento 11: unhealthy
+ intento 12: unhealthy
+ intento 13: unhealthy
+ intento 14: unhealthy
+ intento 15: unhealthy
+ intento 16: unhealthy
+ intento 17: unhealthy
+ intento 18: unhealthy
+ intento 19: unhealthy
+ intento 20: unhealthy
+ intento 21: unhealthy
+ intento 22: unhealthy
+ intento 23: unhealthy
+ intento 24: unhealthy
+ intento 25: unhealthy
+ intento 26: unhealthy
+ intento 27: unhealthy
+ intento 28: unhealthy
+ intento 29: unhealthy
+ intento 30: unhealthy
+ intento 31: unhealthy
+ intento 32: unhealthy
+ intento 33: unhealthy
+ intento 34: unhealthy
+ intento 35: unhealthy
+ intento 36: unhealthy
+ intento 37: unhealthy
+ intento 38: unhealthy
+ intento 39: unhealthy
+ intento 40: unhealthy
+ intento 41: unhealthy
+ intento 42: unhealthy
+ intento 43: unhealthy
+ intento 44: unhealthy
+ intento 45: unhealthy
+ intento 46: unhealthy
+ intento 47: unhealthy
+ intento 48: unhealthy
+ intento 49: unhealthy
+ intento 50: unhealthy
+ intento 51: unhealthy
+ intento 52: unhealthy
+ intento 53: unhealthy
+ intento 54: unhealthy
+ intento 55: unhealthy
+ intento 56: unhealthy
+ intento 57: unhealthy
+ intento 58: unhealthy
+ intento 59: unhealthy
+ intento 60: unhealthy
+AVISO: el contenedor no llego a healthy; revisa el log de abajo
+== Estado final ==
+== Registro de arranque (docker logs) ==
+Starting Oracle Net Listener.
+Oracle Net Listener started.
+Starting Oracle AI Database instance FREE.
+Oracle AI Database instance FREE started.
+
+The Oracle base remains unchanged with value /opt/oracle
+
+SQL*Plus: Release 23.26.3.0.0 - Production on Sat Sep 26 15:23:52 2026
+Version 23.26.3.0.0
+
+Copyright (c) 1982, 2026, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle AI Database 26ai Free Release 23.26.3.0.0 - Develop, Learn, and Run for Free
+Version 23.26.3.0.0
+
+SQL> 
+User altered.
+
+SQL> 
+User altered.
+
+SQL> 
+Session altered.
+
+SQL> 
+User altered.
+
+SQL> Disconnected from Oracle AI Database 26ai Free Release 23.26.3.0.0 - Develop, Learn, and Run for Free
+Version 23.26.3.0.0
+#########################
+DATABASE IS READY TO USE!
+#########################
+The following output is now a tail of the alert.log:
+CLID: P
+PDB$SEED(2):Autotune of undo retention is turned on. 
+PDB$SEED(2):Opening pdb with Resource Manager plan: DEFAULT_PLAN
+FREEPDB1(3):Autotune of undo retention is turned on. 
+2026-09-26T15:23:52.144362+00:00
+FREEPDB1(3):Opening pdb with Resource Manager plan: DEFAULT_PLAN
+Completed: Pluggable database FREEPDB1 opened read write 
+Completed: ALTER DATABASE OPEN
+2026-09-26T15:23:52.939243+00:00
+FREEPDB1(3):TABLE AUDSYS.AUD$UNIFIED: ADDED INTERVAL PARTITION SYS_P496 (4471) VALUES LESS THAN (TIMESTAMP' 2026-09-27 00:00:00')
+2026-09-26T15:23:53.761111+00:00
+===========================================================
+Dumping current patch information
+===========================================================
+No patches have been applied
+===========================================================
+2026-09-26T15:23:54.063487+00:00
+FREEPDB1(3):Resize operation completed for file# 13, fname /opt/oracle/oradata/FREE/FREEPDB1/sysaux01.dbf, old size 409600K, new size 419840K
+2026-09-26T15:23:59.034903+00:00
+TABLE SYS.WRP$_REPORTS: ADDED AUTOLIST FRAGMENT SYS_P656 (3) VALUES (( 1509902213, TO_DATE(' 2026-09-21 00:00:00', 'syyyy-mm-dd hh24:mi:ss', 'nls_calendar=gregorian') ))
+TABLE SYS.WRP$_REPORTS_DETAILS: ADDED AUTOLIST FRAGMENT SYS_P657 (3) VALUES (( 1509902213, TO_DATE(' 2026-09-21 00:00:00', 'syyyy-mm-dd hh24:mi:ss', 'nls_calendar=gregorian') ))
+TABLE SYS.WRP$_REPORTS_TIME_BANDS: ADDED AUTOLIST FRAGMENT SYS_P660 (3) VALUES (( 1509902213, TO_DATE(' 2026-09-21 00:00:00', 'syyyy-mm-dd hh24:mi:ss', 'nls_calendar=gregorian') ))
+2026-09-26T15:29:50.054748+00:00
+--ATTENTION--
+Time drifted backward by (4000000) micro seconds at 1790436594 whereas allowed drift is 5000000
+2026-09-26T15:29:59.568116+00:00
+--ATTENTION--
+Time stall, backward drift ended at 1790436599 with drift 5000000
+Stopping container.
+SIGTERM received, shutting down database!
+
+SQL*Plus: Release 23.26.3.0.0 - Production on Sat Sep 26 15:30:05 2026
+Version 23.26.3.0.0
+
+Copyright (c) 1982, 2026, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle AI Database 26ai Free Release 23.26.3.0.0 - Develop, Learn, and Run for Free
+Version 23.26.3.0.0
+
+SQL> 2026-09-26T15:30:05.208182+00:00
+Shutting down ORACLE instance (immediate) (OS id: 917)
+Shutdown is initiated by sqlplus@74bacacd8edd (TNS V1-V3).
+Stopping background process SMCO.
+Shutting down instance: further logons disabled
+2026-09-26T15:30:05.386268+00:00
+Stopping background process CJQ0
+Stopping background process MMNL.
+2026-09-26T15:30:05.530935+00:00
+Process termination requested for pid 510 (Q001) [source = rdbms], [info = 2] [request issued by pid: 508, uid: 54321]
+Stopping background process MMON.
+alter pluggable database all close immediate
+2026-09-26T15:30:05.732969+00:00
+FREEPDB1(3):JIT: pid 917 requesting stop
+2026-09-26T15:30:05.738732+00:00
+FREEPDB1(3):Stopped service freepdb1
+Completed: Pluggable database FREEPDB1 closed services=None
+Completed: alter pluggable database all close immediate
+PDB$SEED(2):JIT: pid 917 requesting stop
+License high water mark = 5
+
+Data Pump shutdown in progress
+ALTER DATABASE CLOSE NORMAL
+alter pluggable database all close immediate
+Completed: alter pluggable database all close immediate
+alter pluggable database all close immediate
+Completed: alter pluggable database all close immediate
+Stopping change tracking
+Database closed.
+2026-09-26T15:30:07.035466+00:00
+Thread 1 closed at log sequence 2
+Successful close of redo thread 1
+2026-09-26T15:30:07.072150+00:00
+Completed: ALTER DATABASE CLOSE NORMAL
+ALTER DATABASE DISMOUNT
+Database dismounted.
+ORACLE instance shut down.
+SQL> Disconnected from Oracle AI Database 26ai Free Release 23.26.3.0.0 - Develop, Learn, and Run for Free
+Version 23.26.3.0.0
+
+LSNRCTL for Linux: Version 23.26.3.0.0 - Production on 26-SEP-2026 15:30:07
+
+Copyright (c) 1991, 2026, Oracle.  All rights reserved.
+
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=0.0.0.0)(PORT=1521)))
+The command completed successfully
