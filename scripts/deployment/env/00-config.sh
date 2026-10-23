@@ -13,3 +13,6 @@ export BACKUP_DIR="$(pwd)/backups"
 export EVID="docs/bitacora/evidencia"
 # Marca de tiempo ISO 8601 en UTC para nombrar la evidencia: $(ts)
 ts() { date -u +%Y%m%dT%H%M%SZ; }
+export HELPER_IMG="ubuntu:24.04"
+export DATA_ROOT="/opt/oracle/oradata"
+export EVID_LAB4="docs/bitacora/lab4/evidencia"

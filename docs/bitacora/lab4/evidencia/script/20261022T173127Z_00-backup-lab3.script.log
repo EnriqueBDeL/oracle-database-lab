@@ -1,0 +1,15 @@
+== Evidencia B.2 - copia del Lab 3 ==
+backup=backups/20261022T173127Z_lab3-final
+etiqueta=lab3-final
+fecha_utc=20261022T173456Z
+contenedor=oralab-26ai
+volumen=oralab-26ai-data
+imagen=container-registry.oracle.com/database/free:latest
+git_commit=n/a
+tipo=copia en frio consistente (SHUTDOWN IMMEDIATE)
+archivos_fuera_del_volumen=0
+== SHA-256 ==
+./extras.lst: OK
+./inventario.txt: OK
+./manifiesto.txt: OK
+./volumen.tar.gz: OK
