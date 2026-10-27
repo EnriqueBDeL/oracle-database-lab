@@ -1,0 +1,43 @@
+################ SESIÓN B ################
+
+[B] 1. ¿Qué ve B? El valor CONFIRMADO, reconstruido con el undo (lectura consistente)
+
+[B] 2. La transacción de A: bloques y registros de undo que ya consume (v$transaction)
+
+SEGMENTO_UNDO BLOQUES_UNDO REGISTROS_UNDO INICIO                 SID_DE_A
+------------- ------------ -------------- -------------------- ----------
+            2            1              1 10/27/26 18:50:42           213
+
+[B] 3. Bloqueos de A: TM (tabla, modo 3 = row exclusive) y TX (fila, modo 6 = exclusive)
+
+       SID TIPO      LMODE OBJETO
+---------- ---- ---------- ----------------
+       213 TM            3 ACA_ESTUDIANTES
+       213 TX            6
+
+[B] 4. B intenta bloquear la misma fila: esperar como mucho 3 s (error esperado: ORA-00054, fila bloqueada por A)
+
+[B] 5. Esperamos a que A confirme...
+
+[B] 6. Consulta de flashback (Flashback Query): la fila tal como era hace 40 s, leída del undo
+
+[B] 7. Reparación lógica con el undo: devolver la fila a su valor anterior (deja el lab repetible)
+
+[B] 8. ¿Cuánto tiempo intenta Oracle conservar el undo? (undo_retention y v$undostat)
+
+NAME                 VALUE
+-------------------- ----------
+undo_management      AUTO
+undo_tablespace      UNDOTBS1
+undo_retention       900
+
+DESDE HASTA   UNDOBLKS   TXNCOUNT CONSULTA_MAS_LARGA_S RETENCION_AJUSTADA_S  ORA_01555
+----- ----- ---------- ---------- -------------------- -------------------- ----------
+18:43 18:51        216        593                    0                  900          0
+################ SESIÓN A (en paralelo) ################
+Session altered.
+[A] UPDATE de la fila 101 a EGRESADO, sin COMMIT todavía
+1 row updated.
+PL/SQL procedure successfully completed.
+Commit complete.
+[A] COMMIT hecho
