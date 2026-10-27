@@ -1,0 +1,51 @@
+
+
+
+
+===== 1. ÚNICO (Q13, verificación de identidad): buscar Y garantizar que no hay dos DNI iguales =====
+Q13 sin ??ndice                filas=      1  lecturas l??gicas=   1417  f??sicas=    0      3.4 ms
+                               plan: TABLE ACCESS FULL CLIENTE
+Q13 con UNIQUE (dni)           filas=      1  lecturas l??gicas=      3  f??sicas=    0       .2 ms
+                               plan: TABLE ACCESS BY INDEX ROWID CLIENTE > INDEX UNIQUE SCAN UX_CLI_DNI
+-- Y ahora la base de datos, no la aplicación, impide el duplicado (ORA-00001 esperado):
+INSERT INTO tiendasur.cliente VALUES (999999, '00004711T', 'otro@tiendasur.es', 'X', 'Y', NULL, 'ES', 'Lorca', SYSDATE)
+*
+ERROR at line 1:
+ORA-00001: unique constraint (TIENDASUR.UX_CLI_DNI) violated on table TIENDASUR.CLIENTE columns (DNI)
+ORA-03301: (ORA-00001 details) row with column values (DNI:'00004711T') already exists
+Help: https://docs.oracle.com/error-help/db/ora-00001/
+
+
+
+===== 2. COMPUESTO y regla del prefijo izquierdo (Q6, clientes de Lorca) con IX_CLI_PAIS_CIUDAD (pais, ciudad) =====
+Q6 solo ciudad                 filas=    100  lecturas l??gicas=      8  f??sicas=    0       .3 ms
+                               plan: TABLE ACCESS BY INDEX ROWID BATCHED CLIENTE > INDEX SKIP SCAN IX_CLI_PAIS_CIUDAD
+Q6 pais + ciudad               filas=     53  lecturas l??gicas=      4  f??sicas=    0       .4 ms
+                               plan: TABLE ACCESS BY INDEX ROWID BATCHED CLIENTE > INDEX RANGE SCAN IX_CLI_PAIS_CIUDAD
+(Sin la primera columna, Oracle puede hacer SKIP SCAN: una búsqueda por cada país (40). Funciona, pero es un parche, no un diseño)
+
+===== 3. COMPUESTO y CUBRIENTE (Q7, la consulta más frecuente: historial del cliente en la app) =====
+Q7 con ix_ped_cliente          filas=      1  lecturas l??gicas=     14  f??sicas=    0       .2 ms
+                               plan: SORT ORDER BY > TABLE ACCESS BY INDEX ROWID BATCHED PEDIDO > INDEX RANGE SCAN IX_PED_CLIENTE
+Q7 (id_cliente, fecha)         filas=      1  lecturas l??gicas=      4  f??sicas=    0       .2 ms
+                               plan: SORT ORDER BY > TABLE ACCESS BY INDEX ROWID BATCHED PEDIDO > INDEX RANGE SCAN IX_PED_CLI_FEC
+Q7 cubriente                   filas=      1  lecturas l??gicas=      4  f??sicas=    0       .1 ms
+                               plan: SORT ORDER BY > TABLE ACCESS BY INDEX ROWID BATCHED PEDIDO > INDEX RANGE SCAN IX_PED_CLI_FEC
+(Igualdad primero, rango después: el índice devuelve las filas YA ORDENADAS (sin SORT). Cubriente: ni siquiera toca la tabla)
+(Oracle no tiene INCLUDE como SQL Server o PostgreSQL: las columnas "de regalo" se añaden al final de la clave)
+
+===== 4. FUNCIONAL (Q1, inicio de sesión con UPPER(email)) =====
+Q1 UPPER(email) tal cual       filas=      1  lecturas l??gicas=   1417  f??sicas=    0       17 ms
+                               plan: TABLE ACCESS FULL CLIENTE
+Q1 con ??ndice funcional       filas=      1  lecturas l??gicas=      4  f??sicas=    0       .1 ms
+                               plan: TABLE ACCESS BY INDEX ROWID BATCHED CLIENTE > INDEX RANGE SCAN IX_CLI_UPPER_EMAIL
+(Funciona, pero es un índice más que mantener. Como el email se guarda en minúsculas, lo profesional es REESCRIBIR: Parte F)
+
+===== 5. PARCIAL a la manera de Oracle (Q12, pedidos pendientes): una columna virtual que es NULL salvo en 'P' =====
+CREATE INDEX tiendasur.ix_ped_pendientes ON tiendasur.pedido (fecha_pendiente)
+                                                              *
+ERROR at line 1:
+ORA-54034: virtual columns not allowed in functional index expressions
+Help: https://docs.oracle.com/error-help/db/ora-54034/
+
+

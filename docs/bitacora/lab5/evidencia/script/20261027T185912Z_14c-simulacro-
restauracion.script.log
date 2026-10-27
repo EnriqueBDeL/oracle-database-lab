@@ -1,0 +1,4 @@
+== 1. Copia previa al simulacro ==
+ORACLE instance shut down.
+== 5. Copia del volumen (tar + gzip, conservando dueños y permisos) ==
+== Arranque del contenedor ==

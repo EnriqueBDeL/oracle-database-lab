@@ -1,0 +1,10 @@
+
+===== Escenario: hoy =====
+
+INDICES_EN_PEDIDO INDICES
+----------------- --------------------------------------------------------------------------------------------------------------
+                4 IX_PED_CLIENTE, IX_PED_FECHA, IX_PED_IMPORTE, SYS_C009093
+hoy: 2000 INSERT               filas=  2000  lecturas l??gicas=  30654  bloques modificados= 20386  redo=  2660 KB    65.5 ms  | por fila: 10.2 bloques, 1362 bytes de redo
+hoy: 2000 UPDATE estado        filas=  2000  lecturas l??gicas=   8044  bloques modificados=  4022  redo=   511 KB    15.9 ms  | por fila: 2 bloques, 261 bytes de redo
+hoy: 2000 UPDATE importe       filas=  2000  lecturas l??gicas=  20149  bloques modificados= 12072  redo=  1429 KB    34.3 ms  | por fila: 6 bloques, 732 bytes de redo
+hoy: 2000 DELETE               filas=  2000  lecturas l??gicas=  32348  bloques modificados= 20181  redo=  2436 KB   152.2 ms  | por fila: 10.1 bloques, 1247 bytes de redo

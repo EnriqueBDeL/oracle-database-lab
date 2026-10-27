@@ -1,0 +1,28 @@
+== 1. Una transacción confirmada y otra SIN confirmar justo antes de la caída ==
+102 -> Confirmado · 103 -> Sin confirmar · y ahora... SHUTDOWN ABORT
+ORACLE instance shut down.
+== 2. Arranque normal: la recuperación de instancia es automática ==
+ORACLE instance started.
+
+Total System Global Area 1603398928 bytes
+Fixed Size		    5033232 bytes
+Variable Size		  469762048 bytes
+Database Buffers	 1124073472 bytes
+Redo Buffers		    4530176 bytes
+Database mounted.
+Database opened.
+  t=0s  docker=healthy  cdb/pdb=READWRITE/READWRITE
+== 3. ¿Qué sobrevivió? (lo confirmado sí; lo no confirmado se deshizo) ==
+== 4. El alert log cuenta la recuperación de instancia ==
+Thread 1 opened at log sequence 13
+Shutting down Oracle instance (abort) (OS id: 7234).
+Instance shutdown (abort)  complete (OS id: 7234)
+[kcv.c:24899] kcvcrv: Beginning crash recovery of 1 threads
+ Thread 1: Recovery starting at checkpoint rba (logseq 20 block 305276), scn 0
+Started redo scan
+Completed redo scan
+ read 86 KB redo, 31 data blocks need recovery
+Started redo application at
+Completed redo application of 0.01MB
+Completed crash recovery at
+Thread 1 opened at log sequence 21

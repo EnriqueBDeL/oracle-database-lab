@@ -2,7 +2,7 @@
 # scripts/ops/grafico-indice.sh — "radiografía" de un índice B-tree a partir de su treedump: ocupación de cada hoja,
 # histograma de llenado y mapa de izquierda (claves bajas) a derecha (claves altas) para ver huecos y el patrón cola.
 # Uso: bash scripts/ops/grafico-indice.sh <ESQUEMA> <INDICE> [archivo-de-evidencia]
-#   p. ej. bash scripts/ops/grafico-indice.sh TIENDASUR IX_PED_CLIENTE "$EVID_LAB5/script/$(ts)_02-grafico.script.log"
+# p. ej. bash scripts/ops/grafico-indice.sh TIENDASUR IX_PED_CLIENTE "$EVID_LAB5/script/$(ts)_02-grafico.script.log"
 # Solo lee: el treedump recorre el índice y escribe una traza; no bloquea la tabla. Seguro en laboratorio y en producción.
 set -euo pipefail
 source scripts/deployment/env/00-config.sh
@@ -11,14 +11,17 @@ LOG="${3:-/dev/null}"
 [ "$LOG" = /dev/null ] || mkdir -p "$(dirname "$LOG")"
 OWNER="${OWNER^^}"; INDICE="${INDICE^^}"
 [[ "$OWNER" =~ ^[A-Z][A-Z0-9_$#]*$ && "$INDICE" =~ ^[A-Z][A-Z0-9_$#]*$ ]] || { echo "Nombre no válido" >&2; exit 2; }
+
 # Cada línea "leaf: 0x... bloque (k: row:N.R avs:A)" del treedump es una hoja: N entradas, R vivas (N-R borradas), A bytes libres
 HOJAS="(SELECT ROW_NUMBER() OVER (ORDER BY line_number) AS pos,
-        TO_NUMBER(REGEXP_SUBSTR(payload, 'row:([0-9]+)', 1, 1, NULL, 1)) AS nrow,
-        TO_NUMBER(REGEXP_SUBSTR(payload, 'row:[0-9]+[.]([0-9]+)', 1, 1, NULL, 1)) AS rrow,
-        TO_NUMBER(REGEXP_SUBSTR(payload, 'avs:([0-9]+)', 1, 1, NULL, 1)) AS avs
-   FROM v\$diag_trace_file_contents WHERE trace_filename = '&tf' AND payload LIKE '%leaf: 0x%')"
+TO_NUMBER(REGEXP_SUBSTR(payload, 'row:([0-9]+)', 1, 1, NULL, 1)) AS nrow,
+TO_NUMBER(REGEXP_SUBSTR(payload, 'row:[0-9]+[.]([0-9]+)', 1, 1, NULL, 1)) AS rrow,
+TO_NUMBER(REGEXP_SUBSTR(payload, 'avs:([0-9]+)', 1, 1, NULL, 1)) AS avs
+FROM v\$diag_trace_file_contents WHERE trace_filename = '&tf' AND payload LIKE '%leaf: 0x%')"
+
 # Ocupación VIVA de una hoja: el espacio usado, descontando la parte que son entradas borradas (nrow - rrow)
 OCU="CASE WHEN nrow = 0 THEN 0 ELSE (7996 - avs) / 7996 * rrow / nrow END"
+
 docker exec -i "$CONT_NAME" sqlplus -s -L / as sysdba <<SQL | tee "$LOG"
 WHENEVER SQLERROR EXIT FAILURE
 SET LINESIZE 150 PAGESIZE 100 FEEDBACK OFF VERIFY OFF TAB OFF
@@ -55,11 +58,12 @@ SELECT LPAD(TRUNC(LEAST(99, 100 * $OCU) / 10) * 10, 3) || '-' || RPAD(TRUNC(LEAS
  GROUP BY TRUNC(LEAST(99, 100 * $OCU) / 10) ORDER BY TRUNC(LEAST(99, 100 * $OCU) / 10);
 PROMPT
 PROMPT ===== Mapa de izquierda (claves bajas) a derecha (claves altas): 64 tramos de hojas consecutivas =====
-PROMPT  Leyenda por ocupación media del tramo:  ' ' <10 %   . <30 %   : <50 %   - <70 %   = <90 %   # >=90 %
+PROMPT Leyenda por ocupación media del tramo: ' ' <10 % . <30 % : <50 % - <70 % = <90 % # >=90 %
 SELECT '[' || LISTAGG(CASE WHEN o < 0.1 THEN ' ' WHEN o < 0.3 THEN '.' WHEN o < 0.5 THEN ':'
-                           WHEN o < 0.7 THEN '-' WHEN o < 0.9 THEN '=' ELSE '#' END) WITHIN GROUP (ORDER BY t) || ']' AS mapa
+                           WHEN o < 0.7 THEN '-' WHEN o < 0.9 THEN '=' ELSE '#' END) WITHIN GROUP (ORDER BY t)
+       || ']' AS mapa
   FROM (SELECT t, AVG($OCU) AS o
           FROM (SELECT NTILE(64) OVER (ORDER BY pos) AS t, nrow, rrow, avs FROM $HOJAS) GROUP BY t);
-PROMPT  Pista para leer el mapa: si la izquierda está vacía y la derecha llena, es un PATRÓN COLA (se inserta por la derecha y se borra por la izquierda)
+PROMPT Pista para leer el mapa: si la izquierda está vacía y la derecha llena, es un PATRÓN COLA (se inserta por la derecha y se borra por la izquierda)
 EXIT
 SQL
