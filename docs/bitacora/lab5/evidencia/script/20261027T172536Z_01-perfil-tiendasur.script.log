@@ -1,0 +1,15 @@
+===== 1. Tablas: r filas, b bloques, R bytes por fila y bfr/b =====
+
+TABLE_NAME																  R	     B	  R_BYTES	 BFR	     MB LAST_ANALYZED
+-------------------------------------------------------------------------------------------------------------------------------- ---------- ---------- ---------- ---------- ---------- ----------------
+CLIENTE 															     100000	  1448	       97	  82	     12 2026-10-27 17:25
+PEDIDO																    1000000	  5914	       48	 167	     47 2026-10-27 17:25
+
+===== 3. Los sesgos que dan juego a las consultas Q1-Q16 =====
+
+DATO				    PCT
+---------------------------- ----------
+cliente pais = ES		   60.2
+cliente ciudad Lorca		     .1
+cliente apellidos LIKE Gonz%	    3.1
+pedido estado = P		      3
