@@ -1,0 +1,11 @@
+-- scripts/lab5/06-quitar-propuesta.sql
+WHENEVER SQLERROR EXIT FAILURE
+ALTER SESSION SET CONTAINER = FREEPDB1;
+BEGIN
+  EXECUTE IMMEDIATE 'DROP INDEX tiendasur.ix_ped_estado';
+  EXECUTE IMMEDIATE 'DROP INDEX tiendasur.ix_ped_canal';
+  EXECUTE IMMEDIATE 'DROP INDEX tiendasur.ix_ped_cp_bad';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+EXIT
