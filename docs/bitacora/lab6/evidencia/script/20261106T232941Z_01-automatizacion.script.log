@@ -1,0 +1,10 @@
+Fallo de conexión
+  USER          = c##ops_ro
+  URL           = jdbc:oracle:thin:@//localhost:1521/freepdb1
+  Mensaje de Error = ORA-01045: Login denied. User C##OPS_RO does not have CREATE SESSION privilege.
+
+https://docs.oracle.com/error-help/db/ora-01045/
+
+                                                                                                                                                                                                                                                               
+Sustitución cancelada
+                                                   

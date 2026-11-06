@@ -1,0 +1,74 @@
+== 1. Tareas de mantenimiento automÃ¡tico (AutoTask) ==
+
+Error que empieza en la línea : 27 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+del comando -
+SELECT client_name, status, window_group FROM dba_autotask_client ORDER BY client_name
+Error en la línea de comandos : 27 Columna : 47 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+Informe de error -
+Error SQL: ORA-00942: La tabla o vista  "SYS"."DBA_AUTOTASK_CLIENT" no existe
+Help: https://docs.oracle.com/error-help/db/ora-00942/
+== 2. Ventanas de mantenimiento: cuÃ¡ndo y cuÃ¡ntas horas duran ==
+
+Error que empieza en la línea : 29 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+del comando -
+SELECT window_name, REPLACE(repeat_interval, ' ') AS repeat_interval,
+       EXTRACT(DAY FROM duration) * 24 + EXTRACT(HOUR FROM duration) AS horas, enabled
+  FROM dba_scheduler_windows ORDER BY window_name
+Error en la línea de comandos : 31 Columna : 8 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+Informe de error -
+Error SQL: ORA-00942: La tabla o vista  "SYS"."DBA_SCHEDULER_WINDOWS" no existe
+Help: https://docs.oracle.com/error-help/db/ora-00942/
+== 3. Umbrales de las alertas de espacio (MMON) que rigen EN ESTA PDB ==
+(NONE = ningÃºn umbral: MMON no avisarÃ¡ aunque el tablespace se llene; se arregla en la Parte F)
+
+Error que empieza en la línea : 34 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+del comando -
+SELECT tablespace_name AS tablespace, warning_operator AS op,
+       REPLACE(warning_value, '<SYSTEM-GENERATED THRESHOLD>', '(automÃ¡tico)') AS aviso,
+       REPLACE(critical_value, '<SYSTEM-GENERATED THRESHOLD>', '(automÃ¡tico)') AS critico
+  FROM dba_tablespace_thresholds
+ WHERE tablespace_name IN ('SYSTEM', 'USERS', 'TBS_ACADEMIA', 'TBS_TIENDASUR', 'UNDOTBS1', 'TEMP')
+ ORDER BY tablespace_name
+Error en la línea de comandos : 37 Columna : 12 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+Informe de error -
+Error SQL: ORA-00942: La tabla o vista  "SYS"."DBA_TABLESPACE_THRESHOLDS" no existe
+Help: https://docs.oracle.com/error-help/db/ora-00942/
+== 4. AWR: cada cuÃ¡nto toma fotos y cuÃ¡nto las guarda ==
+
+Error que empieza en la línea : 41 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+del comando -
+SELECT snap_interval, retention FROM dba_hist_wr_control WHERE con_id = SYS_CONTEXT('USERENV', 'CON_ID')
+Error en la línea de comandos : 41 Columna : 38 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+Informe de error -
+Error SQL: ORA-00942: La tabla o vista  "SYS"."DBA_HIST_WR_CONTROL" no existe
+Help: https://docs.oracle.com/error-help/db/ora-00942/
+
+Error que empieza en la línea : 42 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+del comando -
+SELECT name, value AS valor FROM v$parameter WHERE name IN ('control_management_pack_access', 'statistics_level')
+Error en la línea de comandos : 42 Columna : 34 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+Informe de error -
+Error SQL: ORA-00942: La tabla o vista  "SYS"."V_$PARAMETER" no existe
+Help: https://docs.oracle.com/error-help/db/ora-00942/
+== 5. Trabajos del Scheduler: cuÃ¡ntos hay y cuÃ¡ntos fallaron en 7 dÃ­as ==
+
+Error que empieza en la línea : 44 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+del comando -
+SELECT owner, COUNT(*) AS trabajos, SUM(CASE WHEN enabled = 'TRUE' THEN 1 ELSE 0 END) AS habilitados
+  FROM dba_scheduler_jobs GROUP BY owner ORDER BY trabajos DESC FETCH FIRST 4 ROWS ONLY
+Error en la línea de comandos : 45 Columna : 8 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+Informe de error -
+Error SQL: ORA-00942: La tabla o vista  "SYS"."DBA_SCHEDULER_JOBS" no existe
+Help: https://docs.oracle.com/error-help/db/ora-00942/
+
+Error que empieza en la línea : 46 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+del comando -
+SELECT job_name, status, COUNT(*) AS ejecuciones
+  FROM dba_scheduler_job_run_details
+ WHERE log_date > SYSTIMESTAMP - INTERVAL '7' DAY AND status <> 'SUCCEEDED'
+ GROUP BY job_name, status ORDER BY ejecuciones DESC FETCH FIRST 5 ROWS ONLY
+Error en la línea de comandos : 47 Columna : 8 Archivo @ file:/C:/Users/enriq/Desktop/Administración%20de%20Base%20Datos/oracle-database-lab/scripts/lab6/01-automatizacion.sql
+Informe de error -
+Error SQL: ORA-00942: La tabla o vista  "SYS"."DBA_SCHEDULER_JOB_RUN_DETAILS" no existe
+Help: https://docs.oracle.com/error-help/db/ora-00942/
+(vacÃ­o en la Ãºltima consulta = ningÃºn trabajo fallÃ³ en 7 dÃ­as)
