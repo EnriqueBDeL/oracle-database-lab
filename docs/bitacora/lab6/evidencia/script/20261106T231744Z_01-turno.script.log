@@ -1,0 +1,114 @@
+Opción incorrecta: C:/Program Files/Git/nolog
+
+Oracle SQL Developer Command-Line (SQLcl) help
+
+Usage 1: sql -H | -V
+
+    -H		   Displays the SQLcl version and the
+		   usage help.
+    -V		   Displays the SQLcl version.
+
+Usage 2: sql  [<option>] [{ <logon> | /nolog}] [<start>] 
+
+  <option> is:  [-R <level>] [-S] [-verbose] [[[-thick]|[-thin]] [-L[OGON] ]
+                [-tnsadmin <directory>] [-cloudconfig <.zip> [-proxy <proxy>]]
+                [-socksproxy <proxy>] [ -name <named-connection]]
+                [-mcp] [-home <directory>] [[-e|-execute] <command>]...
+
+    -R <level>	Sets restricted mode to disable SQLcl commands
+                that interact with the file system.	The level can
+                be 1, 2, 3 or 4.  The most restrictive is -R 4 which
+                disables all user commands interacting with the
+                file system.
+    -S	        Sets silent mode which suppresses the display of
+                the SQLcl banner, prompts, and echoing of
+                commands.
+    -verbose    Set this to show logging messages inline and enable
+                extension-loading warnings.
+                By default these messages are suppressed.
+    -nohistory  Switch off history logging.
+    -noupdates  Do not check update site for newer versions available.
+    -thin       Set this to use an Oracle thin JDBC.
+                If this option is set, then SQLcl will use the thin 
+                drivers shipped 
+    -thick      Set this to use an Oracle Instant Client installation.
+                If this option is set, then SQLcl will use the drivers
+                from the first Installation on the path.
+    -L[OGON]    Specifies not to reprompt for username or password 
+                if the initial connection does not succeed.
+    -cloudconfig <file.zip> [-proxy <proxy>]
+                Use file.zip to connect to cloud - with optional proxy.
+    -socksproxy [socks5|socks5h]://[host]:[port] 
+                Use to connect to cloud via a socks proxy.
+    -name <named-connection>
+                Connect to a saved connection.  see connmgr for details.
+    -tnsadmin <directory>
+                Set the TNS_ADMIN directory
+    -mcp        Run the Model Context Protocol (MCP) Server
+    -home <directory>
+                Override the default DBTools home directory used for storing
+                connections and settings
+    -e <command> | -execute <command>
+                Run one SQLcl command at startup. Repeat the option to run
+                multiple commands in the order specified. These commands run
+                after the normal startup files and SQLcl then exits.
+                This option cannot be combined with @script input or piped
+                stdin. Use EXIT or WHENEVER to control the shell exit code.
+                Avoid placing passwords or other secrets directly on the
+                command line where the shell or process list may expose them.
+
+
+
+  <logon> is: {<username>[/<password>][@<connect_identifier>] | / }
+	      [AS {SYSDBA | SYSOPER | SYSASM | SYSBACKUP | SYSDG | SYSRAC | SYSKM}]
+
+    Specifies the database account username, password and connect
+    identifier for the database connection.  Without a connect
+    identifier, SQLcl connects to the default database.
+
+    The AS SYSDBA, AS SYSOPER, AS SYSASM, AS SYSBACKUP, AS SYSDG, AS SYSRAC
+    and AS SYSKM options are database administration privileges.
+
+    <connect_identifier> can be in the form of Net Service Name
+    or Easy Connect.
+
+      @[<net_service_name> | [//]Host[:Port]/<service_name>]
+
+	<net_service_name> is a simple name for a service that resolves
+	to a connect descriptor.
+
+	Example: Connect to database using Net Service Name and the
+		 database net service name is ORCL.
+
+	   sql myusername/mypassword@ORCL
+
+	Host specifies the host name or IP address of the database
+	server computer.
+
+	Port specifies the listening port on the database server.
+
+	<service_name> specifies the service name of the database you
+	want to access.
+
+	Example: Connect to database using Easy Connect and the
+		 Service name is ORCL.
+
+	   sql myusername/mypassword@Host/ORCL
+
+    The /NOLOG option starts SQLcl without connecting to a
+    database.
+
+
+  <start> is: @<URL>|<filename>[.<ext>] [<parameter> ...]
+
+    Runs the specified SQLcl script from a web server (URL) or the
+    local file system (filename.ext) with specified parameters that
+    will be assigned to substitution variables in the script.
+
+When SQLcl starts, and after CONNECT commands, the site profile
+(e.g. $ORACLE_HOME/sqlplus/admin/glogin.sql) and the user profile
+(e.g. login.sql in the working directory) are run.  The files may
+contain SQLcl commands. By default, login scripts run in restricted
+auto-exec mode, which blocks sensitive commands.
+
+Refer to the SQLDeveloper User's Guide and Reference for more information.
