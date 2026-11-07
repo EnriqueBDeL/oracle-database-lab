@@ -1,39 +1,92 @@
 # Lab 6 · Respuestas
 
-## Parte B · Lista de turno
+## Partes A-C: Rol operativo, parámetros y estados
 
-La lista de turno comprueba la identidad de la sesión, el estado de la instancia y de la PDB, los errores ORA recientes, el espacio, los bloqueos y las alertas pendientes. La evidencia está en `docs/bitacora/lab6/evidencia/script/20261106T231816Z_01-turno.script.log`.
+**1. Errores ORA- en las últimas 24 horas**
 
-## Parte C · Parámetros y estados de la PDB
+Durante el periodo analizado se registraron 202 errores ORA en el alert log. La mayoría procedían de las pruebas de fallo realizadas anteriormente, como ORA-01113 y ORA-01110 del Lab 5. Este valor debe compararse con la línea base habitual antes de interpretarlo como una incidencia.
 
-Los parámetros pueden proceder del valor por defecto, del fichero de parámetros o de la memoria. Un cambio con `SCOPE=SPFILE` requiere reinicio; `SCOPE=MEMORY` afecta a la instancia actual; `SCOPE=BOTH` aplica a memoria y al fichero cuando Oracle lo permite. `FREEPDB1` quedó abierta en `READWRITE`, sin `RESTRICTED`, y con el estado guardado para el siguiente arranque.
+**2. Ventana de mantenimiento**
 
-## Parte D · Servicios y sesiones
+La ventana de mantenimiento del miércoles comienza a las 22:00 y dura cuatro horas. Oracle ejecuta en ese intervalo tareas automáticas como la recopilación de estadísticas del optimizador, Segment Advisor y SQL Tuning Advisor.
 
-`academia_app` es un servicio dedicado de `FREEPDB1`, separado del servicio general de la PDB. La aplicación usa la cuenta local `APP_ACADEMIA`, mientras que las sesiones se observan y cancelan desde las vistas dinámicas con sus SID y serial.
+**3. Diferencia entre V$SPPARAMETER y V$PARAMETER**
 
-## Parte E · Diccionario y observabilidad
+Después de establecer el parámetro con `SCOPE=SPFILE`, `V$SPPARAMETER` mostró 250, mientras `V$PARAMETER` mantuvo 200 porque refleja el valor cargado en memoria. Sin un `RESET`, el cambio habría entrado en vigor al reiniciar la instancia.
 
-La misma consulta produce resultados distintos según la identidad y el contenedor. `C##OPS_RO` puede consultar el catálogo autorizado y tiene `CONTAINER_DATA=ALL`; `APP_ACADEMIA` solo ve sus objetos y los objetos concedidos de `ADMIN_ACADEMIA`. Los `ORA-00942` de `DBA_USERS`, `CDB_USERS` y `V$DATAFILE` para la cuenta de aplicación son la evidencia de que no tiene privilegios de catálogo.
+**4. RESET y el parámetro db_files**
 
-## Parte F · Espacio y cuotas
+Aplicar `RESET` a `db_files` eliminó su entrada del SPFILE y recuperó el valor predeterminado. Si se hubiera aplicado a `processes`, también se habría eliminado la configuración explícita de 200.
 
-`TBS_ACADEMIA_HIST` quedó limitado a 40 MB y `CARGA_HIST` tiene una cuota de 30 MB. La tabla histórica se compactó hasta conservar 2000 filas. Una cuota limita lo que un usuario puede asignar; el techo del datafile limita el crecimiento físico del tablespace.
+**5. Reinicio sin estado persistente**
 
-## Parte G · Gobierno del acceso
+Al reiniciar sin guardar el estado de la PDB, `C##OPS_RO` encontró errores como ORA-01109 u ORA-12514 porque la PDB permaneció en `MOUNTED`. Que la instancia indicara que la base estaba abierta solo confirmaba el CDB, no la disponibilidad de las PDB.
 
-`PRF_PERSONAS` limita los intentos fallidos a 3. `ANA_GARCIA` usa `ROL_SECRETARIA_ACADEMIA`, que permite leer el esquema de Academia y actualizar solo la columna `ESTADO`. `APP_ACADEMIA` usa `ROL_APP_ACADEMIA` y no conserva privilegios de objeto sueltos ni `RESUMABLE`.
+## Partes D-E: Servicios, sesiones y diccionario
 
-## Parte H · Objetos y limpieza
+**6. Sesión de aplicación**
 
-Los objetos de prueba se eliminaron, la papelera de `ADMIN_ACADEMIA` quedó vacía y no hay objetos inválidos en los esquemas de negocio.
+La sesión tenía SID 47, SPID 797 y esperaba en `PL/SQL lock timer`. `MODULE`, `ACTION` y `CLIENT_IDENTIFIER` identificaban el módulo de matrículas, el cierre de periodo y el usuario final, información que no se obtiene únicamente del usuario técnico.
 
-## Parte I · Guardia
+**7. CANCEL SQL frente a KILL SESSION**
 
-Se documentaron los tres incidentes en [lab6-guardia.md](./lab6-guardia.md):
+Después de `CANCEL SQL` permanecía una transacción abierta; después de `KILL SESSION` ya no existía. El registro 101 volvió a `ACTIVO` porque Oracle hizo rollback de los cambios pendientes al finalizar la sesión.
 
-- `INC-601`: bloqueo de la fila 101 por una transacción abierta.
-- `INC-602`: `academia_app` detenido y error `ORA-12514`.
-- `INC-603`: cuenta `APP_ACADEMIA` bloqueada y error `ORA-28000`.
+**8. Valor de common_user_prefix**
 
-La validación final se ejecuta con `scripts/lab6/09-verificacion-final.sh`.
+`common_user_prefix` aparece vacío en esta instalación, por lo que Oracle no exige el prefijo `C##` para las cuentas comunes.
+
+**9. Las tres perspectivas de ALL_TABLES**
+
+`C##OPS_RO` no visualizaba tablas desde la raíz ni desde `FREEPDB1`, mientras `APP_ACADEMIA` sí observaba una. Las vistas `ALL_` muestran los objetos sobre los que existen privilegios; la aplicación tenía acceso explícito y el usuario operativo tenía permisos de catálogo.
+
+**10. Lecturas lógicas y DB Time**
+
+La carga implicó 5.378 lecturas lógicas por recorrido y aproximadamente 0,37 segundos de DB Time. Como DB Time y DB CPU eran prácticamente iguales, el tiempo correspondió casi por completo a CPU, sin esperas relevantes.
+
+## Partes F-G: Espacio y acceso
+
+**11. Tamaño de TBS_ACADEMIA_HIST**
+
+El tablespace tenía 10 MB asignados, 3,9 MB libres y una capacidad máxima de 40 MB. Para monitorizarlo, el indicador más representativo era el porcentaje usado respecto al máximo: 15,16 %.
+
+**12. Cuotas y ORA-01950**
+
+Aunque la inserción inicial la realizó SYS, el consumo se asignó al propietario del segmento, `CARGA_HIST`, que no tenía cuota suficiente. Ampliar el tablespace no habría solucionado el problema porque la limitación estaba en la cuota.
+
+**13. Funcionamiento de la carga reanudable**
+
+La operación quedó suspendida unos 14 segundos, de 16:39:39 a 16:39:53. El alert log registró la suspensión y la reanudación después de conceder el privilegio necesario.
+
+**14. Uso de SHRINK SPACE**
+
+Antes de `SHRINK SPACE`, la tabla ocupaba 2.944 bloques para 2.000 filas, unos 23 MB. Después quedó en unos 304 bloques y 2,4 MB. El borrado no liberó almacenamiento porque los bloques seguían por debajo del High Water Mark.
+
+**15. Comparación de perfiles**
+
+`DEFAULT` permitía intentos fallidos ilimitados y contraseñas sin caducidad. `PRF_PERSONAS` bloqueaba tras tres intentos incorrectos y exigía renovar la contraseña cada 90 días.
+
+**16. Privilegios de Ana**
+
+Ana podía consultar `ACA_MATRICULAS` mediante `SELECT ANY TABLE ON SCHEMA admin_academia`. Al intentar modificar una columna distinta de `ESTADO`, Oracle devolvió ORA-41900 porque solo tenía permiso de actualización sobre esa columna.
+
+## Partes H-I: Objetos, diagnóstico y guardia
+
+**17. Objetos inválidos**
+
+Añadir una columna no invalidó todos los objetos porque Oracle gestiona las dependencias con granularidad fina. La modificación del correo afectó a `V_CONTACTO_LAB6`; la ampliación de nombres invalidó `V_ACTIVOS_LAB6` y la función dependiente `F_TOTAL_ACTIVOS_LAB6`.
+
+**18. Advisors de memoria**
+
+Duplicar la SGA no aportaría una mejora apreciable porque el factor estimado de DB Time permanecería prácticamente igual. Reducir la PGA por debajo de 512 MB aumentaría el riesgo de sobreasignación y degradación.
+
+**19. Análisis de la traza TKPROF**
+
+La ejecución reflejó 247 lecturas lógicas para obtener los datos de la aplicación. El valor se observa como `cr=247` en la línea `FETCH` del informe TKPROF.
+
+**20. Guardia**
+
+- `INC-601`: el bloqueo se identificó mediante `V$SESSION.BLOCKING_SESSION` y eventos `enq: TX`; se terminó la sesión bloqueadora y se verificó que el registro 101 quedó en `ACTIVO`.
+- `INC-602`: `lsnrctl status` y `V$ACTIVE_SERVICES` mostraron que faltaba el servicio; se ejecutó `DBMS_SERVICE.START_SERVICE` y se guardó el estado con `SAVE STATE`.
+- `INC-603`: `DBA_USERS` mostró la cuenta bloqueada; se ejecutó `ACCOUNT UNLOCK` y se comprobó que la aplicación volvió a conectar.
+
