@@ -33,9 +33,13 @@ CÓMO SE RELLENA
 1. Copia el predicado que delata el problema en el plan real y explica de dónde sale.
 2. Lecturas y p95 de V1 y V2. ¿Por qué EXPLAIN PLAN no lo vio?
 
-## Parte D · C08 · E-Rows frente a A-Rows
-1. Estimación y filas reales antes y después del grupo de columnas. ¿En qué línea del plan se separan por primera vez?
-2. ¿Por qué el optimizador multiplicaba mal las dos selectividades?
+## Parte D · C08 · El optimizador cree 6 filas y son 99 (E-Rows frente a A-Rows)
+
+1. **Estimación y filas reales antes y después del grupo de columnas. ¿En qué línea del plan se separan por primera vez?**
+   Antes de crear la estadística extendida, el optimizador estimaba **6** clientes (`E-Rows`) frente a los **99** reales (`A-Rows`) en el acceso a `CLIENTE`, arrastrando el error hacia arriba hasta estimar **55** pedidos finales frente a **987** reales (`docs/bitacora/lab7/evidencia/casos/20261126T164517Z_C08_diagnosticar.txt`). Leyendo el plan de dentro afuera, la primera operación donde `E-Rows × Starts` se desvía de `A-Rows` es la **línea 3 (`TABLE ACCESS BY INDEX ROWID BATCHED` sobre `CLIENTE`)**. Tras crear el grupo de columnas `(CIUDAD, COMUNIDAD)` y recoger estadísticas, la estimación en esa línea 3 pasa a **100** filas frente a **99** reales, y el total del plan se ajusta a **991** estimadas frente a **987** reales (`docs/bitacora/lab7/evidencia/casos/20261126T164518Z_C08_solucionar.txt` y `20261126T164518Z_C08_validar.txt`).
+
+2. **¿Por qué el optimizador multiplicaba mal las dos selectividades?**
+   Porque, al no tener estadísticas conjuntas, el optimizador asume que ambas columnas son estadísticamente independientes y multiplica sus selectividades individuales ($100\,000 \times \frac{1}{1\,001} \times \frac{1}{18} \approx 5{,}6 \rightarrow 6$). Como `CIUDAD` y `COMUNIDAD` están correlacionadas (cada ciudad pertenece a una única comunidad), filtrar por la comunidad no reduce más el conjunto de clientes ya filtrados por ciudad, provocando esa subestimación (`docs/bitacora/lab7/evidencia/casos/20261126T164516Z_C08_entender.txt`).
 
 ## Parte E · C12 · Estadísticas obsoletas
 1. Filas según las estadísticas y reales; método de unión y lecturas antes y después.
