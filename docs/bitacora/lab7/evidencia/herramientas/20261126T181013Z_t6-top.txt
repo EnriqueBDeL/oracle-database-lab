@@ -1,0 +1,8 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T18:10:13Z origen=t6/top
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5501288
+== Top 10 sentencias por elapsed (filtro: CODIGO_POSTAL) ==
+
+SQL_ID         PLAN_HASH       EJEC SEG_TOTAL    MS_EJEC  GETS_EJEC FILAS_EJEC TEXTO
+------------- ---------- ---------- --------- ---------- ---------- ---------- ------------------------------------------
+53mx77snb43uw 2571571058         20       0.6       28.3       6419          1 SELECT /*+ t6_cp_v2 */ COUNT(*), SUM(IMPOR
+-- Siguiente paso: «t6 plan SQL_ID» para ver el plan real de la que más pesa.

@@ -1,0 +1,74 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T17:16:30Z origen=t6/C14_diagnosticar
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5474456
+
+SYS@FREE> ALTER SESSION SET CONTAINER = FREEPDB1;
+
+Session altered.
+
+SYS@FREE> SET LINESIZE 170
+SYS@FREE> SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(
+  2    (SELECT sql_id FROM v$sql WHERE sql_text LIKE 'SELECT /*+ t6_c14_panel */%' AND ROWNUM = 1), NULL, 'TYPICAL -NOTE -HINT_REPORT'));
+
+PLAN_TABLE_OUTPUT
+------------------------------------------------------------------------------------------------------------------------------------------------------
+SQL_ID  1tdgur95h0z4w, child number 0
+-------------------------------------
+SELECT /*+ t6_c14_panel */ COUNT(*), SUM(IMPORTE) FROM T6.PEDIDO WHERE
+ESTADO = 'P' AND CANAL = 'T' AND FECHA_PEDIDO >= DATE '2025-10-20'
+
+Plan hash value: 3335698967
+
+--------------------------------------------------------------------------------------------------------
+| Id  | Operation                            | Name            | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                     |                 |       |       |    83 (100)|          |
+|   1 |  SORT AGGREGATE                      |                 |     1 |    19 |            |          |
+|*  2 |   TABLE ACCESS BY INDEX ROWID BATCHED| PEDIDO          |  4167 | 79173 |    83   (0)| 00:00:01 |
+|*  3 |    INDEX RANGE SCAN                  | IX_T6_PED_FECHA |  9000 |       |    29   (0)| 00:00:01 |
+--------------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - filter(("ESTADO"='P' AND "CANAL"='T'))
+   3 - access("PEDIDO"."SYS_NC00008$">=SYS_EXTRACT_UTC(TIMESTAMP' 2025-10-20 00:00:00'))
+
+22 rows selected.
+
+SYS@FREE> COLUMN index_name FORMAT A20
+SYS@FREE> COLUMN columnas FORMAT A40
+SYS@FREE> SELECT i.index_name, LISTAGG(c.column_name, ', ') WITHIN GROUP (ORDER BY c.column_position) AS columnas, i.distinct_keys
+  2    FROM dba_indexes i JOIN dba_ind_columns c ON c.index_owner = i.owner AND c.index_name = i.index_name
+  3   WHERE i.owner = 'T6' AND i.table_name = 'PEDIDO' GROUP BY i.index_name, i.distinct_keys ORDER BY 1;
+
+INDEX_NAME           COLUMNAS                                 DISTINCT_KEYS
+-------------------- ---------------------------------------- -------------
+IX_T6_PED_CLIENTE    ID_CLIENTE                                      100824
+IX_T6_PED_CP         CODIGO_POSTAL                                     1000
+IX_T6_PED_ESTADO     ESTADO                                               4
+IX_T6_PED_FECHA      SYS_NC00008$                                   1000000
+PK_T6_PEDIDO         ID_PEDIDO                                      1000000
+
+5 rows selected.
+
+SYS@FREE> COLUMN column_name FORMAT A14
+SYS@FREE> SELECT column_name, num_distinct, histogram FROM dba_tab_col_statistics
+  2   WHERE owner = 'T6' AND table_name = 'PEDIDO' AND column_name IN ('ESTADO', 'CANAL', 'FECHA_PEDIDO');
+
+COLUMN_NAME    NUM_DISTINCT HISTOGRAM
+-------------- ------------ ---------------
+FECHA_PEDIDO        1000000 NONE
+ESTADO                    4 NONE
+CANAL                     3 NONE
+
+3 rows selected.
+
+SYS@FREE> PROMPT -- Lectura: el plan puede acceder por FECHA, pero filtra ESTADO y CANAL después. Ningún índice combina los tres.
+-- Lectura: el plan puede acceder por FECHA, pero filtra ESTADO y CANAL después. Ningún índice combina los tres.
+SYS@FREE> PROMPT -- Sin histograma, la estimación de ESTADO no refleja bien su distribución. El índice compuesto se prueba aparte.
+-- Sin histograma, la estimación de ESTADO no refleja bien su distribución. El índice compuesto se prueba aparte.
+SYS@FREE> PROMPT -- Propuesta: indexar (estado, canal, fecha_pedido) y cubrir IMPORTE al final para evitar visitas a la tabla.
+-- Propuesta: indexar (estado, canal, fecha_pedido) y cubrir IMPORTE al final para evitar visitas a la tabla.
+SYS@FREE> PROMPT -- Fíjate en E-Rows frente a A-Rows: sin histograma, la estimación de ESTADO es una media.
+-- Fíjate en E-Rows frente a A-Rows: sin histograma, la estimación de ESTADO es una media.
+SYS@FREE> EXIT

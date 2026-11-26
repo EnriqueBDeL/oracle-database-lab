@@ -1,0 +1,38 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T16:45:17Z origen=t6/C08_entender
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5459894
+
+SYS@FREE> ALTER SESSION SET CONTAINER = FREEPDB1;
+
+Session altered.
+
+SYS@FREE> SET ECHO OFF
+== La realidad ==
+
+CLIENTES_REALES
+---------------
+             99
+
+1 row selected.
+
+MAX_COMUNIDADES_POR_CIUDAD
+--------------------------
+                         1
+
+1 row selected.
+
+== Lo que sabe el optimizador de cada columna POR SEPARADO ==
+
+COLUMN_NAME      NUM_DISTINCT HISTOGRAM
+---------------- ------------ ---------------
+CIUDAD                   1001 NONE
+COMUNIDAD                  18 NONE
+
+2 rows selected.
+
+  NUM_ROWS ESTIMACION_INDEPENDIENTE
+---------- ------------------------
+    100000                      5.6
+
+1 row selected.
+
+-- Lectura: por independencia se estiman unos 6 clientes; son 99. El error está en suponer que las columnas son independientes.

@@ -1,0 +1,7 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T18:09:49Z origen=t6/INC-610_verificar
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5501270
+== INC-610 · verificar · alumno E006 · semilla 6
+OK    Incidente INC-610 roto para E006 (semilla 6) el 2026-11-26 18:07 · optimizer_index_cost_adj = 4200 en FREEPDB1
+FALLO optimizer_index_cost_adj de FREEPDB1 = 4200 (por defecto, 100)
+FALLO No queda el valor guardado en el SPFILE de la PDB (se quitó con RESET)
+FALLO La V2 de la búsqueda vuelve a usar IX_T6_PED_CP
