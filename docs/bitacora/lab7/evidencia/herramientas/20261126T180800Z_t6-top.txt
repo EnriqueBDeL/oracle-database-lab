@@ -1,0 +1,19 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T18:08:00Z origen=t6/top
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5501138
+== Top 12 sentencias por elapsed (filtro: -) ==
+
+SQL_ID         PLAN_HASH       EJEC SEG_TOTAL    MS_EJEC  GETS_EJEC FILAS_EJEC TEXTO
+------------- ---------- ---------- --------- ---------- ---------- ---------- ------------------------------------------
+2sxqgx5hx76qr 3312420081      18807       1.4        0.1          3         16 select /*+ rule */ bucket, endpoint, col#,
+0sbbcuruzd66f 2239883476      34405       1.1        0.0          3          1 select /*+ rule */ bucket_cnt, row_cnt, ca
+00t1jxa7jzjh8          0        661       0.5        0.7          9          1 declare active_pid NUMBER; active_part_rc
+4zxrh77d4v3vj 1738720349       2799       0.5        0.2          2          0 SELECT idx_objn, nvl(idx_objd, 0), idx_bas
+121ffmrc95v7g 2542797530        771       0.4        0.6          9          1 select i.obj#,i.ts#,i.file#,i.block#,i.int
+gg4269s70kbra 3526770254       2161       0.4        0.2          5          1 select /*+ rule */ t.ts#,t.file#,t.block#,
+acmx4vq16gn52 4233836756        230       0.4        1.5          5          1 select count(*) from ilmobj$ where rownum
+7qb74y7hp6cwd 3154421282        175       0.3        1.8         16          1  select st.dbid, st.atskid, nvl(ctl.instan
+66s1mzwpxgw00  278877258         13       0.3       22.5        116          0 select sql_id, sql_exec_id, dbop_name, dbo
+0gwaa0289rasu  299250003       3845       0.2        0.1          6          2 select /*+ rule */ pos#,intcol#,col#,spare
+dt26ufwkgd2qr          0         46       0.2        4.7         31          1  insert into UMF$_ATSK_HIST(dbid,epoch_tim
+586577qpbkgnk 1910938566          1       0.2      213.2        657          0 select 1 from DBA_SCHEDULER_JOBS where JOB
+-- Siguiente paso: «t6 plan SQL_ID» para ver el plan real de la que más pesa.

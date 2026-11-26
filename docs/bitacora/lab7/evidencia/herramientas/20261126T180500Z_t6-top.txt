@@ -1,0 +1,17 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T18:05:00Z origen=t6/top
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5499394
+== Top 10 sentencias por elapsed (filtro: GROUP) ==
+
+SQL_ID         PLAN_HASH       EJEC SEG_TOTAL    MS_EJEC  GETS_EJEC FILAS_EJEC TEXTO
+------------- ---------- ---------- --------- ---------- ---------- ---------- ------------------------------------------
+121ffmrc95v7g 2542797530       1944       2.3        1.2          7          2 select i.obj#,i.ts#,i.file#,i.block#,i.int
+7bz5kz4wd72dd 1724503935          4       1.6      389.9        438          1 WITH MSGS AS ( SELECT ID, JSON_OBJECT( 'ms
+d3kxxfctxz8mf 2968219638          2       1.2      608.2     231905         78 select e.stat_name key, sum(e.value) - nvl
+f5dqupu2hknzu  954505980          0       0.4                                  WITH a as (SELECT a$.dbid, a$.snap_id, a$.
+6h3cwmunz5z8q 2968095032       2075       0.3        0.2          2          0 select col#, grantee#, privilege#,max(mod(
+6a0bmzx24tx19 1647301261          2       0.2      120.5        489          3 with pval as (select parameter_name from A
+2zxv8k95nu54d 2573729703          2       0.2      109.9        594          0 with agg_system_event as (select dbid, ins
+aan5d179t8gab   24247904          2       0.2       99.3        144          0 with sqt as (select exec, sharable_mem, sq
+ar7k216xj0cca  969891849          2       0.2       94.2        271          0 with pval as (select parameter_name from A
+a5b436j8unht1   24247904          2       0.2       85.8        144          0 with sqt as (select exec, version_count, s
+-- Siguiente paso: «t6 plan SQL_ID» para ver el plan real de la que más pesa.

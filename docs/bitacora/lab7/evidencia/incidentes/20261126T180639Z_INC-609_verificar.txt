@@ -1,0 +1,7 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T18:06:39Z origen=t6/INC-609_verificar
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5501045
+== INC-609 · verificar · alumno E006 · semilla 6
+OK    Incidente INC-609 roto para E006 (semilla 6) el 2026-11-26 18:04 · sort_area_size = 160 KB
+OK    Una sesión nueva de T6_APP trabaja con workarea_size_policy = AUTO
+OK    El informe no se desborda a TEMP (una pasada: 0, varias: 0)
+OK    Ningún disparador de logon activo cambia la memoria de T6_APP

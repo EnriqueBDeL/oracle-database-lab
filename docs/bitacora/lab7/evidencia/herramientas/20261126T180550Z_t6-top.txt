@@ -1,0 +1,9 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T18:05:50Z origen=t6/top
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5500963
+== Top 10 sentencias por elapsed (filtro: t6_inc609) ==
+
+SQL_ID         PLAN_HASH       EJEC SEG_TOTAL    MS_EJEC  GETS_EJEC FILAS_EJEC TEXTO
+------------- ---------- ---------- --------- ---------- ---------- ---------- ------------------------------------------
+bmcg9273wgu8q 1544403339          1       5.4     5375.9       8110     100000 SELECT /* t6_inc609_informe */ id_cliente,
+b1frkvajbhs9g 2711565627          1       0.0       46.6        227          1 SELECT CASE WHEN NVL(SUM(onepass_execution
+-- Siguiente paso: «t6 plan SQL_ID» para ver el plan real de la que más pesa.

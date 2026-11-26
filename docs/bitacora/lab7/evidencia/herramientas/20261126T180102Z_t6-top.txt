@@ -1,0 +1,11 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T18:01:02Z origen=t6/top
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5498000
+== Top 10 sentencias por elapsed (filtro: CESTA) ==
+
+SQL_ID         PLAN_HASH       EJEC SEG_TOTAL    MS_EJEC  GETS_EJEC FILAS_EJEC TEXTO
+------------- ---------- ---------- --------- ---------- ---------- ---------- ------------------------------------------
+9xa2vquam7jhh 2666663749          1       0.1       96.0       7487     156000 INSERT INTO t6.cesta SELECT id_pedido, id_
+fdhxc8s6q7094 2772717022          1       0.0       32.4        284          0 SELECT 1 FROM DBA_TABLES WHERE OWNER = 'T6
+7wf0cm6apqfan 2666663749          1       0.0       25.3        564        100 INSERT INTO t6.cesta SELECT id_pedido, id_
+bpdcxfg3ymq7x 1941416301          1       0.0        1.6          7          1 /* SQL Analyze(0) */ select /*+ full(t) no
+-- Siguiente paso: «t6 plan SQL_ID» para ver el plan real de la que más pesa.

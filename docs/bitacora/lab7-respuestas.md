@@ -79,29 +79,48 @@ CÓMO SE RELLENA
 2. **¿Qué hizo la evolución con el plan nuevo y por qué? ¿Qué queda pendiente para que no vuelva a pasar?**
    Al generarse de nuevo el recorrido completo (`SQL_PLAN_0a27u7nan424b95a18d93`), SPM lo guardó en el historial como no aceptado (`ACCEPTED = NO`, `ORIGIN = AUTO-CAPTURE`) sin aplicarlo; durante la **evolución**, verificó ambos planes y **rechazó el plan nuevo** por no superar el criterio de beneficio (*benefit criterion*), ya que su rendimiento verificado fue **0,73831 veces peor** que el de la línea base (`docs/bitacora/lab7/evidencia/casos/20261126T174511Z_C18_observar.txt`). Para evitar que vuelva a ocurrir, queda pendiente corregir la preferencia **`METHOD_OPT`** de la tabla `PEDIDO` (actualmente fijada en `FOR ALL COLUMNS SIZE 1`, que deja `ESTADO` con `HISTOGRAM = NONE`) y recoger estadísticas con red (runbook RB-2).
 
-## Parte G · Incidente 1 · INC-6NN
-- **Síntoma (con números):**
-- **Playbook y pasos seguidos (herramientas y vistas):**
-- **Causa raíz:**
-- **Arreglo aplicado (órdenes exactas) y por qué ese:**
-- **Verificación (archivo de evidencia con todo OK):**
-- **Prevención (qué evitaría que se repita):**
+## Parte G · Incidente 1 · INC-605
+- **Síntoma (con números):** A las 18:00 del 26-11-2026, la carga añadió **156 000** cestas; el informe dejó de responder como antes (`20261126T180042Z_INC-605_romper.txt`). El ticket indicó empezar por PB-3 y RB-2.
+- **Playbook y pasos seguidos (herramientas y vistas):** `incidente INC-605 romper`; `incidente INC-605 pistas`; PB-3: `t6 estad CESTA` informó `NUM_ROWS=100`, **156 000** inserciones, `STALE=YES` y estadísticas bloqueadas `ALL` (`20261126T180108Z_t6-estad.txt`). Ejecuté el informe con `optimizer_adaptive_plans=FALSE`; `t6 top 10 elapsed t6_inc605` identificó `SQL_ID 7y2dsqjjhbp9y`, plan `470663276`, **164 818 GETS** y **71,9 ms** (`20261126T180213Z_t6-top.txt`). `t6 plan 7y2dsqjjhbp9y` confirmó `NESTED LOOPS` estimando 100 filas (`20261126T180230Z_t6-plan.txt`); `t6 spm lista CESTA` no encontró líneas base.
+- **Causa raíz:** La carga masiva dejó 156 100 filas reales frente a las 100 registradas, pero `STATTYPE_LOCKED=ALL` impidió que la recogida automática refrescara las estadísticas. La estimación demasiado baja hizo elegir bucles anidados y una búsqueda por clave primaria por cada cesta.
+- **Arreglo aplicado (órdenes exactas) y por qué ese:** En `FREEPDB1` como SYSDBA, apliqué RB-2 para desbloquear y recoger estadísticas actuales, incluyendo las de índices e invalidando el cursor:
+  ```sql
+  ALTER SESSION SET CONTAINER = FREEPDB1;
+  BEGIN
+    DBMS_STATS.UNLOCK_TABLE_STATS(ownname => 'T6', tabname => 'CESTA');
+    DBMS_STATS.GATHER_TABLE_STATS(
+      ownname => 'T6', tabname => 'CESTA',
+      cascade => TRUE, no_invalidate => FALSE);
+  END;
+  /
+  ```
+- **Verificación (archivo de evidencia con todo OK):** `incidente INC-605 verificar` dio `OK` para estadísticas de **156 100** filas frente a **156 100** reales y para `HASH JOIN`; informó que las estadísticas ya no están bloqueadas (`20261126T180327Z_INC-605_verificar.txt`).
+- **Prevención (qué evitaría que se repita):** No mantener bloqueadas las estadísticas de una tabla que recibe cargas masivas. Tras cada carga, recoger estadísticas de CESTA y comprobar `NUM_ROWS`, `STALE_STATS` y `STATTYPE_LOCKED`; la tarea automática no puede actualizarlas mientras sigan bloqueadas.
 
-## Parte G · Incidente 2 · INC-6NN
-- **Síntoma (con números):**
-- **Playbook y pasos seguidos (herramientas y vistas):**
-- **Causa raíz:**
-- **Arreglo aplicado (órdenes exactas) y por qué ese:**
-- **Verificación (archivo de evidencia con todo OK):**
-- **Prevención (qué evitaría que se repita):**
+## Parte G · Incidente 2 · INC-609
+- **Síntoma (con números):** A las 18:04 del 26-11-2026, los informes de T6_APP usaron `sort_area_size = 160 KB` y el informe de ventas tardó **5 375,9 ms** (`20261126T180410Z_INC-609_romper.txt` y `20261126T180550Z_t6-top.txt`).
+- **Playbook y pasos seguidos (herramientas y vistas):** `incidente INC-609 romper`; `incidente INC-609 pistas`; seguí PB-4. `t6 memoria` mostró `pga_aggregate_target = 512 MB`, **98 %** de acierto estimado y **100 %** con 614 MB (`20261126T180447Z_t6-memoria.txt`); `t6 sesiones informes` no encontró sesiones activas en ese instante (`20261126T180453Z_t6-sesiones.txt`). El verificador inicial ejecutó el informe en una sesión nueva y mostró política `MANUAL`, una pasada múltiple a TEMP y un disparador activo (`20261126T180531Z_INC-609_verificar.txt`). `t6 top 10 elapsed t6_inc609` identificó `SQL_ID bmcg9273wgu8q`; `t6 plan bmcg9273wgu8q` mostró `HASH GROUP BY` usando **29 MB** de TEMP y `SORT ORDER BY` otros **3 072 KB** (`20261126T180550Z_t6-top.txt` y `20261126T180603Z_t6-plan.txt`). `DBA_TRIGGERS`/`DBA_SOURCE` identificaron `T6.TRG_SESION_APLICACION` y los ajustes de sesión que ejecutaba.
+- **Causa raíz:** El disparador `AFTER LOGON` de T6_APP imponía `workarea_size_policy=MANUAL`, `sort_area_size=160 KB` y `hash_area_size=320 KB`. Las áreas manuales provocaban el desbordamiento pese a que la PGA tenía margen; aumentar `pga_aggregate_target` no corregía esos límites de sesión.
+- **Arreglo aplicado (órdenes exactas) y por qué ese:** En `FREEPDB1` como SYSDBA, deshabilité el disparador que cambiaba la política de cada sesión nueva; no aumenté la PGA:
+  ```sql
+  ALTER SESSION SET CONTAINER = FREEPDB1;
+  ALTER TRIGGER T6.TRG_SESION_APLICACION DISABLE;
+  ```
+- **Verificación (archivo de evidencia con todo OK):** `incidente INC-609 verificar` confirmó política `AUTO`, **0** pasadas de una o varias a TEMP y ningún disparador activo que altere la memoria de T6_APP (`20261126T180639Z_INC-609_verificar.txt`).
+- **Prevención (qué evitaría que se repita):** No aplicar límites manuales de PGA mediante disparadores de logon. Mantener el dimensionamiento centralizado con PGA automática y revisar el asesor `t6 memoria` antes de cambiar `pga_aggregate_target`.
 
-## Parte G · Incidente 3 · INC-6NN
-- **Síntoma (con números):**
-- **Playbook y pasos seguidos (herramientas y vistas):**
-- **Causa raíz:**
-- **Arreglo aplicado (órdenes exactas) y por qué ese:**
-- **Verificación (archivo de evidencia con todo OK):**
-- **Prevención (qué evitaría que se repita):**
+## Parte G · Incidente 3 · INC-610
+- **Síntoma (con números):** A las 18:07 del 26-11-2026, varias consultas de la aplicación empeoraron a la vez. La búsqueda V2 por código postal (`SQL_ID 53mx77snb43uw`) usaba el plan **2571571058** (`TABLE ACCESS FULL`), con **6 419** lecturas lógicas y **28,3 ms** por ejecución (`20261126T180734Z_INC-610_romper.txt`, `20261126T181013Z_t6-top.txt` y `20261126T181030Z_t6-plan.txt`).
+- **Playbook y pasos seguidos (herramientas y vistas):** `incidente INC-610 romper`; `incidente INC-610 pistas` indicó PB-3 porque habían cambiado varias consultas a la vez. `t6 top 10 elapsed CODIGO_POSTAL` identificó la V2 y `t6 plan 53mx77snb43uw` mostró el `TABLE ACCESS FULL`; su historial AWR conservaba el plan bueno **2982358210** (`INDEX RANGE SCAN`), por ejemplo en las instantáneas 22 y 23. La consulta de parámetros en `FREEPDB1` y el verificador inicial confirmaron `optimizer_index_cost_adj = 4200`, frente al valor por defecto **100** (`20261126T180949Z_INC-610_verificar.txt`).
+- **Causa raíz:** Se había fijado `optimizer_index_cost_adj` a **4200** a nivel de `FREEPDB1`, haciendo que el optimizador considerase demasiado costosos los índices y eligiese un recorrido completo de `PEDIDO` para la búsqueda por código postal.
+- **Arreglo aplicado (órdenes exactas) y por qué ese:** Como SYSDBA, restablecí el parámetro a su valor por defecto en la PDB, eliminé su valor persistido y vacié la caché para que las consultas se optimizaran de nuevo:
+  ```sql
+  ALTER SESSION SET CONTAINER = FREEPDB1;
+  ALTER SYSTEM RESET optimizer_index_cost_adj SCOPE=BOTH;
+  ALTER SYSTEM FLUSH SHARED_POOL;
+  ```
+- **Verificación (archivo de evidencia con todo OK):** `incidente INC-610 verificar` confirmó el valor **100**, que no queda valor guardado en el SPFILE de la PDB y que la V2 vuelve a usar `IX_T6_PED_CP` (`20261126T181057Z_INC-610_verificar.txt`). Después, `t6 top` y `t6 plan` confirmaron el plan **2982358210** con `INDEX RANGE SCAN`, **1 112** lecturas lógicas y **6,3 ms** por ejecución (`20261126T181129Z_t6-top.txt` y `20261126T181144Z_t6-plan.txt`).
+- **Prevención (qué evitaría que se repita):** Antes de modificar parámetros del optimizador, registrar la línea base y medir el efecto en las consultas afectadas. Tras el cambio, revisar en `FREEPDB1` tanto `V$SYSTEM_PARAMETER` como `V$SPPARAMETER` y validar los planes con PB-3; no dejar ajustes extremos sin justificación ni medición.
 
 ## Parte H · Reflexión
 1. De todo el laboratorio, ¿qué cambio dio más mejora por menos riesgo? Justifícalo con tus números.

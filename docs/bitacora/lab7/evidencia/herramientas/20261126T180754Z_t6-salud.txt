@@ -1,0 +1,37 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T18:07:54Z origen=t6/salud
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5501135
+== 1 · Carga frente a capacidad: AAS por minuto (V$CON_SYSMETRIC_HISTORY) y CPU_COUNT ==
+
+MINUT        AAS
+----- ----------
+18:03        .01
+18:04        .02
+18:05        .01
+18:06        .11
+18:07        .02
+
+SEMAFORO
+----------------------------------------------------------------------------------------------------
+VERDE    AAS máximo .1 con CPU_COUNT 2: hay holgura
+== 2 · En qué se va el tiempo (ASH, muestras de 1 s de sesiones activas de esta PDB) ==
+
+WAIT_CLASS     EVENTO                                     MUESTRAS    PCT
+-------------- ---------------------------------------- ---------- ------
+CPU            ON CPU                                            6   54.5
+User I/O       direct path write temp                            5   45.5
+== 3 · Quién lo consume: SQL_ID y módulo con más muestras ==
+
+SQL_ID        MODULE           ACTION           MUESTRAS    PCT TEXTO
+------------- ---------------- -------------- ---------- ------ --------------------------------------------
+bmcg9273wgu8q SQL*Plus                                 5   55.6
+28jacy77743hk sqlplus@05463e4a                         2   22.2
+              4f26 (TNS V1-V3)
+
+ampw9ddqufjd3 SYS_AUTO_STS_MOD CAPTURE_CURSOR          1   11.1
+              ULE              _CACHE
+
+b402ympqpgmkz sys$bsg_timeout  Vector Index F          1   11.1 select bobjn#, iobjn#, flags from vecsys.vec
+                               ailed Refresh
+                               Recovery Task
+
+-- Siguiente paso: con el SQL_ID de arriba, «t6 plan SQL_ID» (playbook PB-2). Con esperas de una sola clase, PB-1 rama 2.

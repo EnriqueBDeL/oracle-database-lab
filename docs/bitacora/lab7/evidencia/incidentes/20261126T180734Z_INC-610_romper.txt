@@ -1,0 +1,7 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T18:07:34Z origen=t6/INC-610_romper
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5501128
+== INC-610 · romper · alumno E006 · semilla 6
+
+Session altered.
+
+Roto: varias pantallas de la web van lentas a la vez desde esta mañana.
