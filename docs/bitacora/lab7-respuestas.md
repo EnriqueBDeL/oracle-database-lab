@@ -41,17 +41,29 @@ CÓMO SE RELLENA
 2. **¿Por qué el optimizador multiplicaba mal las dos selectividades?**
    Porque, al no tener estadísticas conjuntas, el optimizador asume que ambas columnas son estadísticamente independientes y multiplica sus selectividades individuales ($100\,000 \times \frac{1}{1\,001} \times \frac{1}{18} \approx 5{,}6 \rightarrow 6$). Como `CIUDAD` y `COMUNIDAD` están correlacionadas (cada ciudad pertenece a una única comunidad), filtrar por la comunidad no reduce más el conjunto de clientes ya filtrados por ciudad, provocando esa subestimación (`docs/bitacora/lab7/evidencia/casos/20261126T164516Z_C08_entender.txt`).
 
-## Parte E · C12 · Estadísticas obsoletas
-1. Filas según las estadísticas y reales; método de unión y lecturas antes y después.
-2. ¿Por qué la tarea automática no lo habría arreglado a tiempo? ¿Quién debe recoger y cuándo?
+## Parte E · C12 · Tras la carga nocturna el plan se equivoca (estadísticas obsoletas)
 
-## Parte E · C13 · El ciclo de estadísticas con red
-1. Describe el ciclo que seguiste (pendientes, probar, publicar, restaurar, bloquear) con la vista que comprueba cada paso.
-2. ¿Qué error obtuviste al recoger sobre estadísticas bloqueadas y cómo se recoge si de verdad hace falta?
+1. **Filas según las estadísticas y reales; método de unión y lecturas antes y después.**
+   Antes de recoger estadísticas, `CARRITO` registraba **100** filas en `NUM_ROWS` (`STALE_STATS = YES`) frente a **200 100** filas reales, lo que llevó al optimizador a elegir **`NESTED LOOPS`** realizando **212 169** lecturas lógicas (`docs/bitacora/lab7/evidencia/casos/20261126T165622Z_C12_entender.txt` y `20261126T165634Z_C12_diagnosticar.txt`). Tras ejecutar `DBMS_STATS.GATHER_TABLE_STATS` únicamente sobre `CARRITO`, las estadísticas reflejan **200 100** filas (`STALE_STATS = NO`), el plan pasa a usar **`HASH JOIN`** y las lecturas lógicas caen a **6 604** (`docs/bitacora/lab7/evidencia/casos/20261126T165646Z_C12_solucionar.txt` y `20261126T165656Z_C12_validar.txt`).
 
-## Parte E · C14 · El índice invisible
-1. Lecturas por apertura del panel antes y después. ¿Cómo probaste el índice sin que lo viera nadie más?
-2. Redo con el índice INVISIBLE y VISIBLE: ¿qué demuestra?
+2. **¿Por qué la tarea automática no lo habría arreglado a tiempo? ¿Quién debe recoger y cuándo?**
+   Porque la tarea automática (`auto optimizer stats collection`, del grupo `ORA$AT_WGRP_OS`) solo actúa durante las ventanas de mantenimiento nocturnas (a partir de las **22:00**, como `THURSDAY_WINDOW`), por lo que una carga de madrugada queda con estadísticas obsoletas hasta la noche siguiente penalizando los informes matinales (`docs/bitacora/lab7/evidencia/casos/20261126T165710Z_C12_observar.txt`). Para evitarlo, debe ser el propio proceso o *job* que realiza la carga masiva quien ejecute `DBMS_STATS.GATHER_TABLE_STATS` sobre la tabla afectada justo al terminar la inserción (runbook RB-2).
+
+## Parte E · C13 · Cambiar estadísticas con red: pendientes, publicar, restaurar y bloquear
+
+1. **Describe el ciclo que seguiste (pendientes, probar, publicar, restaurar, bloquear) con la vista que comprueba cada paso.**
+   Tras actualizar **133 748** pedidos (`STALE_STATS = YES`, `PUBLISH = TRUE`, estimando **250 000** filas en `'E'` frente a **183 235** reales), se desactivó `PUBLISH` y se recogieron estadísticas que quedaron como **pendientes** (`1 000 000` filas, `2026-11-26 17:07:40`), comprobables en **`DBA_TAB_PENDING_STATS`** (`docs/bitacora/lab7/evidencia/casos/20261126T170738Z_C13_entender.txt`, `20261126T170739Z_C13_diagnosticar.txt` y `20261126T170745Z_C13_solucionar.txt`). Se **probaron** en la sesión con `optimizer_use_pending_statistics = TRUE` (estimación de **183 235** filas) y se **publicaron** restaurando `PUBLISH = TRUE`, verificando el histograma `FREQUENCY` en **`DBA_TAB_COL_STATISTICS`**, `STALE_STATS = NO` en **`DBA_TAB_STATISTICS`** y sin pendientes (`docs/bitacora/lab7/evidencia/casos/20261126T170745Z_C13_solucionar.txt` y `20261126T170745Z_C13_validar.txt`). Finalmente, usando el historial de **`DBA_TAB_STATS_HISTORY`** (retención de **31** días), se **restauraron** las estadísticas previas (volviendo `ESTADO` a `NONE` en **`DBA_TAB_COL_STATISTICS`**) y se **bloquearon**, quedando `STATTYPE_LOCKED = ALL` en **`DBA_TAB_STATISTICS`** (`docs/bitacora/lab7/evidencia/casos/20261126T170752Z_C13_observar.txt`).
+
+2. **¿Qué error obtuviste al recoger sobre estadísticas bloqueadas y cómo se recoge si de verdad hace falta?**
+   Al intentar recoger estadísticas sobre `PEDIDO` estando bloqueadas se obtuvo el error **`ORA-20005: object statistics are locked (stattype = ALL)`** (`docs/bitacora/lab7/evidencia/casos/20261126T170752Z_C13_observar.txt`). Si de verdad hace falta recogerlas manteniendo el bloqueo, se pasa **`force => TRUE`** a `DBMS_STATS.GATHER_TABLE_STATS`, o bien se desbloquean antes con `DBMS_STATS.UNLOCK_TABLE_STATS`.
+
+## Parte E · C14 · Un índice nuevo sin riesgo: invisible, probar, publicar y medir
+
+1. **Lecturas por apertura del panel antes y después. ¿Cómo probaste el índice sin que lo viera nadie más?**
+   Antes de crear el índice, cada apertura del panel realizaba **1 793** lecturas lógicas (**47,9** ms) para devolver **2 023** pedidos (`docs/bitacora/lab7/evidencia/casos/20261126T171627Z_C14_provocar.txt` y `20261126T171628Z_C14_entender.txt`). Para no afectar al resto de sesiones, se creó el índice compuesto `IX_T6_C14_PEND` sobre `(ESTADO, CANAL, FECHA_PEDIDO, IMPORTE)` como **`INVISIBLE`** y se probó de forma aislada activando únicamente en la sesión actual **`ALTER SESSION SET optimizer_use_invisible_indexes = TRUE`**. Tras verificar la mejora y hacerlo `VISIBLE`, cada apertura pasó a consumir solo **13** lecturas lógicas (**0,32** ms) (`docs/bitacora/lab7/evidencia/casos/20261126T171636Z_C14_solucionar.txt` y `20261126T171637Z_C14_validar.txt`).
+
+2. **Redo con el índice INVISIBLE y VISIBLE: ¿qué demuestra?**
+   Al actualizar 20 000 pedidos, el redo generado sin mantener el índice (`UNUSABLE`) fue de **9 002** KB, mientras que con el índice **`INVISIBLE`** generó **10 271** KB y con **`VISIBLE`** **10 270** KB (`docs/bitacora/lab7/evidencia/casos/20261126T171644Z_C14_observar.txt`). Esto demuestra que poner un índice como `INVISIBLE` solo lo oculta al optimizador para que no cambie planes de ejecución, pero Oracle sigue manteniéndolo en cada operación DML con el mismo coste de escritura y redo que uno visible.
 
 ## Parte F · C17 · INC-604 con AWR, ASH y ADDM
 1. SLI y SLO; p95 antes y después; instantáneas AWR que usaste.

@@ -1,0 +1,15 @@
+== EVIDENCIA alumno=E006 hora=2026-11-26T17:07:46Z origen=t6/C13_validar
+== EVIDENCIA contenedor=05463e4a4f26 dbid=1509902213 arranque=2026-11-26T16:12:56 scn=5470258
+
+SYS@FREE> ALTER SESSION SET CONTAINER = FREEPDB1;
+
+Session altered.
+
+SYS@FREE> SET ECHO OFF FEEDBACK OFF SERVEROUTPUT OFF
+
+RESULTADO
+--------------------------------------------------------------------------------------------------------------
+OK    Estimación de pedidos E: 183235 (reales 183235)
+OK    ESTADO tiene histograma FREQUENCY
+OK    No quedan estadísticas pendientes sin publicar
+OK    La preferencia PUBLISH ha vuelto a TRUE
